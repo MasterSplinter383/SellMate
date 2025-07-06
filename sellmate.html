@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <title>SellMate</title>
+    <style>
+      /* For both Clear buttons */
+
+      .clear-sales-button {
+        background-color: #dc3545; /* Red color */
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+
+      .clear-sales-button:hover {
+        background-color: #c82333; /* Darker red on hover */
+      }
+      /* Base Styles */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .button {
+        background-color: #007bff;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 8px;
+        font-size: 16px;
+      }
+
+      .admin-button {
+        background-color: #28a745;
+      }
+
+      .logout-button {
+        background-color: #dc3545;
+      }
+
+      .checkout-button {
+        background-color: #17a2b8;
+      }
+
+      .discount-button {
+        background-color: #ffc107;
+        color: black;
+      }
+
+      .status-button {
+        background-color: #6c757d;
+        font-size: 12px;
+        padding: 4px 8px;
+        margin-left: 5px;
+      }
+
+      .clear-sales-button {
+        background-color: #dc3545;
+        margin-left: 10px;
+      }
+
+      .in-stock {
+        background-color: #28a745;
+      }
+
+      .out-of-stock {
+        background-color: #dc3545;
+      }
+
+      .suspended {
+        background-color: #ffc107;
+        color: black;
+      }
+
+      input,
+      select {
+        padding: 10px;
+        margin: 8px 0;
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      .error {
+        color: red;
+        margin-top: 5px;
+        font-size: 14px;
+      }
+
+      .success {
+        color: green;
+        margin-top: 5px;
+        font-size: 14px;
+      }
+
+      /* Login Page Styles */
+      body.login-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f5f5f5;
+        padding: 20px;
+      }
+
+      #login-section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+
+      #login-section h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      /* Main App Styles */
+      #main-section {
+        display: none;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      #app-header {
+        background: #007bff;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      /* Default welcome text position */
+      #welcome {
+        margin-left: 0; /* Default position */
+      }
+
+      /* Admin-specific adjustment (move left by 15px) */
+      #welcome.admin-user {
+        margin-left: 90px; /* Negative margin pulls it left */
+      }
+      #app-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      #main-content {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+      }
+
+      /* Cart Sidebar Styles */
+      #cart-sidebar {
+        width: 100%;
+        background: #f9f9f9;
+        border-top: 1px solid #ddd;
+        padding: 15px;
+        position: relative;
+        bottom: 0;
+        z-index: 90;
+      }
+
+      /* Menu Items Grid - Make boxes bigger */
+      #menu-items {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(220px, 1fr)
+        ); /* Wider columns */
+        gap: 20px; /* More spacing between items */
+      }
+
+      /* Individual Item Box Styling */
+      .item {
+        border: 1px solid #ddd;
+        padding: 20px; /* More padding inside the box */
+        border-radius: 10px; /* Rounder corners */
+        background: white;
+        position: relative;
+        min-height: 180px; /* Minimum height to ensure consistency */
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease; /* Smooth hover effect */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+      }
+
+      .item:hover {
+        transform: translateY(-5px); /* Slight lift on hover */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Stronger shadow on hover */
+      }
+
+      /* Item Name Styling */
+      .item h3 {
+        font-size: 18px; /* Larger title */
+        margin-top: 20px;
+        margin-bottom: 12px; /* More spacing below title */
+        color: #333; /* Darker text for better readability */
+      }
+
+      /* Price Styling */
+      .item p {
+        font-size: 16px; /* Larger price text */
+        margin-bottom: 15px; /* More spacing above button */
+        color: #007bff; /* Blue color for price */
+        font-weight: bold;
+      }
+
+      /* Status Badge Styling */
+      .item-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: white;
+        font-weight: bold;
+      }
+      .discount-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        background-color: #ffc107;
+        color: black;
+        font-weight: bold;
+      }
+
+      /* Button Styling (already updated previously) */
+      .item button {
+        margin-top: auto; /* Pushes button to bottom of flex container */
+        width: 100%;
+        padding: 12px 0;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 768px) {
+        #menu-items {
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        }
+        .item {
+          padding: 15px;
+          min-height: 160px;
+        }
+      }
+
+      .status-in-stock {
+        background-color: #28a745;
+      }
+
+      .status-out-of-stock {
+        background-color: #dc3545;
+      }
+
+      /* Admin Panel Styles */
+      #admin-section {
+        margin-top: 20px;
+        border-top: 2px dashed #ccc;
+        padding-top: 15px;
+      }
+
+      .user-form {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-top: 15px;
+      }
+
+      /* Cart Items Styles */
+      #cart-items {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      #cart-items li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+      }
+
+      #cart-total {
+        font-weight: bold;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 2px solid #007bff;
+        font-size: 16px;
+      }
+
+      /* Discount Section */
+      #discount-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #ccc;
+      }
+
+      #discount-form {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      #discount-form input {
+        flex: 1;
+      }
+
+      /* Admin-only controls */
+      .admin-only {
+        display: none;
+      }
+
+      .show-admin {
+        display: block;
+      }
+
+      /* Checkout Page Styles */
+      #checkout-page {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        padding: 15px;
+      }
+
+      #checkout-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .payment-method {
+        margin: 15px 0;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .payment-method.selected {
+        border-color: #007bff;
+        background-color: #f0f8ff;
+      }
+
+      .remove-user {
+        color: red;
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .suspend-user {
+        color: orange;
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .unsuspend-user {
+        color: green;
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      /* Sales Modal Styles */
+      #sales-modal table {
+        width: 100%;
+        margin-top: 15px;
+      }
+
+      #sales-modal th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+      }
+
+      #sales-modal tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      #sales-modal tr:hover {
+        background-color: #f1f1f1;
+      }
+
+      /* Filter Controls */
+      #sales-modal input[type="date"],
+      #sales-modal select {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .sales-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* Audit Log Styles */
+      .audit-log-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      .audit-log-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .audit-log-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      .audit-log-table th,
+      .audit-log-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .audit-log-table th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+      }
+
+      .audit-log-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      /* Password Prompt Styles */
+      .password-prompt {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        padding: 20px;
+      }
+
+      .password-prompt-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .password-prompt h3 {
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .password-prompt-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .password-prompt-buttons button {
+        flex: 1;
+      }
+
+      /* Login Logs Modal */
+      .login-logs-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      .login-logs-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .login-logs-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      .login-logs-table th,
+      .login-logs-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .login-logs-table th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+      }
+
+      .login-logs-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      /* Responsive Layout for Larger Screens */
+      @media (min-width: 768px) {
+        #app-content {
+          flex-direction: row;
+        }
+
+        #main-content {
+          width: 70%;
+        }
+
+        #cart-sidebar {
+          width: 30%;
+          min-width: 300px;
+          max-width: 400px;
+          border-left: 1px solid #ddd;
+          border-top: none;
+          position: sticky;
+          top: 60px;
+          height: calc(100vh - 60px);
+          overflow-y: auto;
+        }
+
+        #cart-items {
+          max-height: none;
+        }
+
+        #menu-items {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+
+        .item h3 {
+          font-size: 18px;
+        }
+
+        .item p {
+          font-size: 16px;
+        }
+      }
+
+      /* Mobile-specific adjustments */
+      @media (max-width: 767px) {
+        .password-prompt {
+          align-items: flex-start;
+          padding-top: 20%;
+        }
+
+        .password-prompt-content {
+          margin-top: 20px;
+        }
+      }
+      /* Cash Payment Modal Styles */
+      #cash-payment-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      #cash-payment-modal.hidden {
+        display: none;
+      }
+
+      .payment-confirmation-content {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+      }
+
+      .payment-input {
+        margin: 20px 0;
+      }
+
+      .payment-input label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      .payment-input input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      #payment-summary {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+      }
+
+      #payment-summary p {
+        margin: 5px 0;
+      }
+
+      #change-display {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 4px;
+        margin: 15px 0;
+        text-align: center;
+      }
+
+      #change-display p {
+        font-weight: bold;
+        font-size: 18px;
+        margin: 0;
+      }
+
+      .payment-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .payment-buttons button {
+        flex: 1;
+      }
+      /* Admin Navbar Styles */
+      #admin-navbar {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1000;
+      }
+
+      #admin-navbar-btn {
+        background-color: #343a40;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: none; /* Hidden by default */
+      }
+
+      #admin-navbar-btn:hover {
+        background-color: #495057;
+      }
+
+      #admin-navbar-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 200px;
+        display: none;
+        z-index: 1001;
+      }
+
+      #admin-navbar-menu.show {
+        display: block;
+      }
+
+      #admin-navbar-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      #admin-navbar-menu li {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
+
+      #admin-navbar-menu li:last-child {
+        border-bottom: none;
+      }
+
+      #admin-navbar-menu li:hover {
+        background-color: #f8f9fa;
+      }
+      /* User Management Modal Styles */
+      .user-management-modal,
+      .add-user-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      .user-management-content,
+      .add-user-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      /* User list item styles */
+      #modal-users-list div {
+        margin-bottom: 5px;
+        padding: 8px;
+        background: #f9f9f9;
+        border-radius: 4px;
+      }
+
+      /* Button styles in modals */
+      .user-management-content button,
+      .add-user-content button {
+        margin-left: 5px;
+      }
+
+      /* Status button colors */
+      .button.status-button.suspended {
+        background-color: #ffc107;
+        color: black;
+      }
+
+      /* Add this to ensure main content doesn't hide behind navbar */
+      #main-content {
+        margin-top: 60px;
+      }
+
+      /* Show admin button only for admin users */
+      .admin-user #admin-navbar-btn {
+        display: block;
+      }
+      /* Custom Modal Styles */
+      #custom-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+      }
+      .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+      }
+      .modal-hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body class="login-page">
+    <div id="admin-navbar">
+      <button id="admin-navbar-btn" onclick="toggleAdminNavbar()">
+        ☰ Admin
+      </button>
+      <div id="admin-navbar-menu">
+        <ul>
+          <li onclick="showSalesRecords()">📊 Sales Records</li>
+          <li onclick="showAuditLog()">📝 Audit Log</li>
+          <li onclick="showLoginLogs()">🔐 Login Logs</li>
+          <li onclick="showUserManagement()">👥 Manage Users</li>
+          <li onclick="showAddUserForm()">➕ Add New User</li>
+          <li onclick="showAddMenuItemForm()">🍽️ Add Menu Item</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Login Page (centered) -->
+    <div id="login-section">
+      <h2>Login</h2>
+      <input type="text" id="loginId" placeholder="Username" />
+      <input type="password" id="loginPass" placeholder="Password" />
+      <button class="button" onclick="checkLogin()">Login</button>
+      <p id="login-error" class="error hidden">
+        Invalid login. Please try again.
+      </p>
+      <p id="suspended-error" class="error hidden">
+        Your account is suspended. Please contact the admin.
+      </p>
+    </div>
+
+    <!-- Main Application Page -->
+    <div id="main-section">
+      <div id="app-header">
+        <div id="welcome"></div>
+        <button class="button logout-button" onclick="logout()">Logout</button>
+      </div>
+
+      <div id="app-content">
+        <div id="main-content">
+          <h2>Menu</h2>
+          <div id="menu-items">
+            <!-- Items will be loaded dynamically -->
+          </div>
+
+          <!-- Only show Add New Menu Item for admin -->
+          <div id="add-item-section" class="admin-only"></div>
+
+          <!-- Admin Section (only visible to admin) -->
+          <div id="admin-section" class="hidden">
+            <div style="margin-bottom: 15px"></div>
+          </div>
+        </div>
+
+        <!-- Cart Sidebar -->
+        <div id="cart-sidebar">
+          <h2>Your Cart</h2>
+          <ul id="cart-items"></ul>
+
+          <!-- Discount Section -->
+          <div id="discount-section">
+            <div id="discount-form" class="hidden">
+              <input
+                type="number"
+                id="discountAmount"
+                placeholder="Discount amount"
+                min="0"
+              />
+              <button class="button" onclick="applyDiscount()">Apply</button>
+            </div>
+            <p id="discount-message" class="hidden"></p>
+          </div>
+
+          <div id="cart-total"></div>
+          <button
+            class="button checkout-button"
+            onclick="showCheckoutPage()"
+            style="width: 100%; margin-top: 15px"
+          >
+            Checkout
+          </button>
+          <button
+            class="button"
+            onclick="clearCart()"
+            style="width: 100%; margin-top: 10px"
+          >
+            Clear Cart
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Custom Alert/Confirm Modal -->
+    <div id="custom-modal" class="modal-hidden">
+      <div class="modal-box">
+        <p id="modal-message"></p>
+        <div class="modal-actions">
+          <!-- For Alerts (OK only) -->
+          <button id="modal-ok" class="button hidden">OK</button>
+          <!-- For Confirms (OK + Cancel) -->
+          <button id="modal-cancel" class="button logout-button hidden">
+            Cancel
+          </button>
+          <button id="modal-confirm" class="button hidden">Confirm</button>
+        </div>
+      </div>
+    </div>
+    <!-- Checkout Page -->
+    <!-- Cash Payment Confirmation Page -->
+    <div id="cash-payment-modal" class="hidden">
+      <div class="payment-confirmation-content">
+        <h2>Cash Payment</h2>
+        <div id="payment-summary">
+          <p>Subtotal: KD <span id="payment-subtotal">0.000</span></p>
+          <p>Discount: KD <span id="payment-discount">0.000</span></p>
+          <p>Total: KD <span id="payment-total">0.000</span></p>
+        </div>
+        <div class="payment-input">
+          <label for="amount-paid">Amount Paid:</label>
+          <input
+            type="number"
+            id="amount-paid"
+            step="0.001"
+            min="0"
+            placeholder="Enter amount paid"
+          />
+        </div>
+        <div id="change-display" class="hidden">
+          <p>Change Due: KD <span id="change-amount">0.000</span></p>
+        </div>
+        <div class="payment-buttons">
+          <button class="button" onclick="confirmCashPayment()">
+            Confirm Payment
+          </button>
+          <button class="button logout-button" onclick="cancelCashPayment()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="checkout-page">
+      <div id="checkout-container">
+        <h2>Checkout</h2>
+        <div id="checkout-summary"></div>
+
+        <h3>Select Payment Method</h3>
+        <div class="payment-method" onclick="selectPayment(this, 'coupons')">
+          <strong>Coupons</strong>
+          <p>Pay with your coupons</p>
+        </div>
+        <div class="payment-method" onclick="selectPayment(this, 'bank')">
+          <strong>Bank</strong>
+          <p>Pay with your Bank account</p>
+        </div>
+        <div class="payment-method" onclick="selectPayment(this, 'cash')">
+          <strong>Cash</strong>
+          <p>Pay with cash</p>
+        </div>
+
+        <div style="margin-top: 20px">
+          <button class="button" onclick="processPayment()" style="width: 100%">
+            Complete Purchase
+          </button>
+          <button
+            class="button logout-button"
+            onclick="hideCheckoutPage()"
+            style="width: 100%; margin-top: 10px"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ===== CUSTOM ALERT/CONFIRM SYSTEM ===== //
+      function showAlert(message) {
+        const modal = document.getElementById("custom-modal");
+        document.getElementById("modal-message").textContent = message;
+
+        // Show only OK button
+        document.getElementById("modal-ok").classList.remove("hidden");
+        document.getElementById("modal-cancel").classList.add("hidden");
+        document.getElementById("modal-confirm").classList.add("hidden");
+
+        modal.classList.remove("modal-hidden");
+
+        return new Promise((resolve) => {
+          document.getElementById("modal-ok").onclick = () => {
+            modal.classList.add("modal-hidden");
+            resolve();
+          };
+        });
+      }
+
+      async function showConfirm(message) {
+        const modal = document.getElementById("custom-modal");
+        document.getElementById("modal-message").textContent = message;
+
+        // Show Confirm + Cancel buttons
+        document.getElementById("modal-ok").classList.add("hidden");
+        document.getElementById("modal-cancel").classList.remove("hidden");
+        document.getElementById("modal-confirm").classList.remove("hidden");
+
+        modal.classList.remove("modal-hidden");
+
+        return new Promise((resolve) => {
+          document.getElementById("modal-confirm").onclick = () => {
+            modal.classList.add("modal-hidden");
+            resolve(true);
+          };
+          document.getElementById("modal-cancel").onclick = () => {
+            modal.classList.add("modal-hidden");
+            resolve(false);
+          };
+        });
+      }
+      let selectedPaymentMethod = null;
+      function selectPayment(element, method) {
+        // Remove selected class from all payment methods
+        document.querySelectorAll(".payment-method").forEach((pm) => {
+          pm.classList.remove("selected");
+        });
+
+        // Add selected class to clicked payment method
+        element.classList.add("selected");
+
+        // Store the selected payment method
+        selectedPaymentMethod = method;
+
+        // Enable the Complete Purchase button
+        document.querySelector("#checkout-container button").disabled = false;
+      }
+      function hideCheckoutPage() {
+        document.getElementById("checkout-page").style.display = "none";
+      }
+      let currentFilteredSales = [];
+      // Database for multi-device sync
+      const DB_NAME = "shoppingSystemDB";
+
+      // Initialize database
+      function initDB() {
+        if (!localStorage.getItem(DB_NAME)) {
+          const defaultDB = {
+            users: {
+              admin: {
+                password: "admin123",
+                isAdmin: true,
+                isSuspended: false,
+              },
+              user1: {
+                password: "pass1",
+                isAdmin: false,
+                isSuspended: false,
+              },
+            },
+            menuItems: [
+              {
+                id: 1,
+                name: "Chocolate Cake",
+                price: 5,
+                status: "in-stock",
+              },
+              {
+                id: 2,
+                name: "Vanilla Donut",
+                price: 2,
+                status: "in-stock",
+              },
+            ],
+            sales: [],
+            auditLog: [],
+            loginLogs: [],
+            nextItemId: 3,
+            nextSaleId: 1,
+          };
+          localStorage.setItem(DB_NAME, JSON.stringify(defaultDB));
+        }
+      }
+
+      // Get database with safety checks
+      function getDB() {
+        const db = JSON.parse(localStorage.getItem(DB_NAME)) || {};
+        if (!db.sales) db.sales = [];
+        if (!db.nextSaleId) db.nextSaleId = 1;
+        if (!db.menuItems) db.menuItems = [];
+        if (!db.users) db.users = {};
+        if (!db.auditLog) db.auditLog = [];
+        if (!db.loginLogs) db.loginLogs = [];
+        return db;
+      }
+
+      // Save database
+      function saveDB(db) {
+        localStorage.setItem(DB_NAME, JSON.stringify(db));
+        localStorage.setItem("db_updated", Date.now());
+      }
+
+      // Current user variable
+      let currentUser = null;
+      // Cart object
+      let cart = {};
+      // Discount variable
+      let discount = 0;
+      // Selected payment method
+
+      // Initialize the app
+      initDB();
+
+      // Listen for database changes from other tabs/windows
+      window.addEventListener("storage", function (event) {
+        if (event.key === "db_updated") {
+          loadMenuItems();
+          updateUsersList();
+        }
+      });
+
+      function checkLogin() {
+        const username = document.getElementById("loginId").value.trim();
+        const password = document.getElementById("loginPass").value;
+        const errorText = document.getElementById("login-error");
+        const suspendedText = document.getElementById("suspended-error");
+        const db = getDB(); // Get database
+
+        // Hide previous errors
+        errorText.classList.add("hidden");
+        suspendedText.classList.add("hidden");
+
+        if (db.users[username]) {
+          // Check if account is suspended
+          if (db.users[username].isSuspended) {
+            suspendedText.classList.remove("hidden");
+            return;
+          }
+
+          // Check password
+          if (db.users[username].password === password) {
+            // Log login
+            logUserActivity(username, "login");
+
+            currentUser = username;
+
+            // Switch from login page to main app
+            document.body.classList.remove("login-page");
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("main-section").style.display = "flex";
+
+            const welcomeText = document.getElementById("welcome");
+            welcomeText.textContent = `Welcome, ${username}!`;
+
+            // If user is admin, shift welcome text left by 15px
+            if (db.users[username].isAdmin) {
+              welcomeText.classList.add("admin-user"); // Apply left shift
+              document.body.classList.add("admin-user"); // Other admin styles
+              document
+                .getElementById("admin-section")
+                .classList.remove("hidden");
+              document
+                .getElementById("add-item-section")
+                .classList.add("show-admin");
+            } else {
+              welcomeText.classList.remove("admin-user"); // Reset position
+              document.body.classList.remove("admin-user");
+              document.getElementById("admin-section").classList.add("hidden");
+              document
+                .getElementById("add-item-section")
+                .classList.remove("show-admin");
+            }
+
+            loadMenuItems();
+            updateModalUsersList();
+            updateCartDisplay();
+          } else {
+            errorText.classList.remove("hidden");
+          }
+        } else {
+          errorText.classList.remove("hidden");
+        }
+      }
+
+      function logout() {
+        // Log logout
+        if (currentUser) {
+          logUserActivity(currentUser, "logout");
+
+          // Save cart to localStorage
+          localStorage.setItem(`cart_${currentUser}`, JSON.stringify(cart));
+        }
+
+        document.body.classList.remove("admin-user"); // Add this line
+        currentUser = null;
+        cart = {};
+        document.getElementById("main-section").style.display = "none";
+        document.body.classList.add("login-page");
+        document.getElementById("login-section").classList.remove("hidden");
+        document.getElementById("loginId").value = "";
+        document.getElementById("loginPass").value = "";
+        document.getElementById("login-error").classList.add("hidden");
+        document.getElementById("suspended-error").classList.add("hidden");
+      }
+      // Log user activity (login/logout)
+      function logUserActivity(username, action) {
+        const db = getDB();
+        db.loginLogs.push({
+          username: username,
+          action: action,
+          timestamp: new Date().toISOString(),
+        });
+        saveDB(db);
+      }
+
+      // Load menu items from database
+      function loadMenuItems() {
+        const db = getDB();
+        const menuContainer = document.getElementById("menu-items");
+        menuContainer.innerHTML = "";
+
+        db.menuItems.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "item";
+          itemDiv.dataset.id = item.id;
+
+          let statusBadge = "";
+          let discountBadge = "";
+          let addToCartButton = "";
+
+          // Calculate discounted price if discount exists
+          const originalPrice = item.price;
+          const discountedPrice =
+            item.discount > 0
+              ? originalPrice * (1 - item.discount / 100)
+              : originalPrice;
+
+          if (item.status === "in-stock") {
+            statusBadge = `<span class="item-status status-in-stock">In Stock</span>`;
+            addToCartButton = `<button class="button" onclick="addToCart(${
+              item.id
+            }, '${item.name}', ${discountedPrice}, ${
+              item.discount || 0
+            })">Add to Cart</button>`;
+          } else {
+            statusBadge = `<span class="item-status status-out-of-stock">Out of Stock</span>`;
+            addToCartButton = `<button class="button" disabled>Out of Stock</button>`;
+          }
+
+          // Add discount badge if item has discount
+          if (item.discount > 0) {
+            discountBadge = `<span class="discount-badge">${item.discount}% OFF</span>`;
+          }
+
+          let adminControls = "";
+          const db = getDB();
+          if (currentUser && db.users[currentUser]?.isAdmin) {
+            adminControls = `
+                                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                    <button class="button status-button ${
+                                      item.status === "in-stock"
+                                        ? "in-stock"
+                                        : "out-of-stock"
+                                    }"
+                                        onclick="changeItemStatus(${
+                                          item.id
+                                        }, '${
+              item.status === "in-stock" ? "out-of-stock" : "in-stock"
+            }')">
+                                        ${
+                                          item.status === "in-stock"
+                                            ? "Mark Out of Stock"
+                                            : "Mark In Stock"
+                                        }
+                                    </button>
+                                    <button class="button status-button" onclick="removeMenuItem(${
+                                      item.id
+                                    })" style="background-color: #dc3545;">
+                                        Remove
+                                    </button>
+                                    <button class="button status-button discount-button" onclick="showItemDiscountForm(${
+                                      item.id
+                                    })">
+                                        Discount
+                                    </button>
+                                </div>
+                            `;
+          }
+
+          itemDiv.innerHTML = `
+                            ${statusBadge}
+                            ${discountBadge}
+                            <h3>${item.name}</h3>
+                            <p>
+                              ${
+                                item.discount > 0
+                                  ? `<span style="text-decoration: line-through; color: #777;">KD ${originalPrice.toFixed(
+                                      3
+                                    )}</span> `
+                                  : ""
+                              }
+                              Price: KD ${discountedPrice.toFixed(3)}
+                              ${
+                                item.discount > 0
+                                  ? `<span style="color: #28a745;">(${item.discount}% off)</span>`
+                                  : ""
+                              }
+                            </p>
+                            ${addToCartButton}
+                            ${adminControls}
+                        `;
+
+          menuContainer.appendChild(itemDiv);
+        });
+      }
+
+      // Show discount form for a specific item
+      function showItemDiscountForm(itemId) {
+        const db = getDB();
+        const item = db.menuItems.find((item) => item.id === itemId);
+
+        if (!item) return;
+
+        const promptDiv = document.createElement("div");
+        promptDiv.className = "password-prompt";
+        promptDiv.innerHTML = `
+                <div class="password-prompt-content">
+                  <h3>Set Discount for ${item.name}</h3>
+                  <input type="number" id="itemDiscountAmount" placeholder="Discount percentage (0-100)"
+                         min="0" max="100" value="${item.discount || 0}">
+                  <div class="password-prompt-buttons">
+                    <button class="button" onclick="applyItemDiscount(${itemId})">Apply</button>
+                    <button class="button logout-button" onclick="document.body.removeChild(document.querySelector('.password-prompt'))">Cancel</button>
+                  </div>
+                  <p id="item-discount-error" class="error hidden"></p>
+                </div>
+              `;
+
+        document.body.appendChild(promptDiv);
+      }
+
+      // Apply discount to a specific item
+      async function applyItemDiscount(itemId) {
+        const db = getDB();
+        const discountInput = document.getElementById("itemDiscountAmount");
+        const errorEl = document.getElementById("item-discount-error");
+
+        const discountValue = parseInt(discountInput.value);
+
+        if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+          errorEl.textContent = "Please enter a valid discount (0-100%)";
+          errorEl.classList.remove("hidden");
+          return;
+        }
+
+        const item = db.menuItems.find((item) => item.id === itemId);
+        if (!item) return;
+
+        // Log the discount change
+        db.auditLog.push({
+          timestamp: new Date().toISOString(),
+          adminUser: currentUser,
+          action: "item_discount_changed",
+          targetItem: item.name,
+          details: {
+            fromDiscount: item.discount || 0,
+            toDiscount: discountValue,
+          },
+        });
+
+        // Update the discount
+        if (discountValue === 0) {
+          delete item.discount; // Remove discount if set to 0
+        } else {
+          item.discount = discountValue;
+        }
+
+        saveDB(db);
+        loadMenuItems();
+
+        // Remove the prompt
+        document.body.removeChild(document.querySelector(".password-prompt"));
+      }
+
+      // Change item status (admin only)
+      async function changeItemStatus(itemId, newStatus) {
+        const db = getDB();
+
+        // Verify admin status
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can change item status!");
+          return;
+        }
+
+        // Find the item to update
+        const item = db.menuItems.find((item) => item.id === itemId);
+        if (item) {
+          // Log the status change
+          db.auditLog.push({
+            timestamp: new Date().toISOString(),
+            adminUser: currentUser,
+            action: "item_status_changed",
+            targetItem: item.name,
+            details: {
+              fromStatus: item.status,
+              toStatus: newStatus,
+            },
+          });
+
+          // Update the status
+          item.status = newStatus;
+          saveDB(db);
+          loadMenuItems(); // Refresh the display
+        }
+      }
+
+      // Remove menu item (admin only)
+      async function removeMenuItem(itemId) {
+        if (await showConfirm("Are you sure you want to remove this item?")) {
+          const db = getDB();
+          db.menuItems = db.menuItems.filter((item) => item.id !== itemId);
+          saveDB(db);
+          loadMenuItems();
+        }
+      }
+
+      // Cart functions
+      function addToCart(itemId, itemName, price, itemDiscount) {
+        if (cart[itemName]) {
+          cart[itemName].quantity += 1;
+        } else {
+          cart[itemName] = {
+            price: price,
+            quantity: 1,
+            itemId: itemId,
+            discount: itemDiscount || 0,
+          };
+        }
+        updateCartDisplay();
+      }
+
+      function updateCartDisplay() {
+        const cartList = document.getElementById("cart-items");
+        cartList.innerHTML = "";
+        let subtotal = 0;
+
+        for (const item in cart) {
+          const li = document.createElement("li");
+          const itemTotal = cart[item].price * cart[item].quantity;
+          subtotal += itemTotal;
+
+          const itemName = document.createElement("span");
+          itemName.textContent = `${item} × ${cart[item].quantity}`;
+
+          const itemPrice = document.createElement("span");
+          itemPrice.textContent = `KD ${itemTotal.toFixed(3)}`;
+
+          li.appendChild(itemName);
+          li.appendChild(itemPrice);
+          cartList.appendChild(li);
+        }
+
+        // Calculate total with discount
+        const total = Math.max(0, subtotal - discount);
+
+        // Display totals
+        let totalHTML = `
+                <div>Subtotal: KD ${subtotal.toFixed(3)}</div>
+            `;
+
+        if (discount > 0) {
+          totalHTML += `
+                    <div>Discount: -KD ${discount.toFixed(3)}</div>
+                `;
+        }
+
+        totalHTML += `
+                <div style="margin-top: 10px;">Total: KD ${total.toFixed(
+                  3
+                )}</div>
+            `;
+
+        document.getElementById("cart-total").innerHTML = totalHTML;
+
+        // Save cart to localStorage
+        if (currentUser) {
+          localStorage.setItem(`cart_${currentUser}`, JSON.stringify(cart));
+        }
+      }
+
+      // Discount functions
+      function showDiscountForm() {
+        document.getElementById("discount-form").classList.remove("hidden");
+      }
+
+      function applyDiscount() {
+        const discountInput = document.getElementById("discountAmount");
+        const discountValue = parseFloat(discountInput.value);
+        const messageEl = document.getElementById("discount-message");
+
+        if (isNaN(discountValue)) {
+          messageEl.textContent = "Please enter a valid discount amount";
+          messageEl.className = "error";
+          messageEl.classList.remove("hidden");
+          return;
+        }
+
+        if (discountValue < 0) {
+          messageEl.textContent = "Discount cannot be negative";
+          messageEl.className = "error";
+          messageEl.classList.remove("hidden");
+          return;
+        }
+
+        // Calculate subtotal to check if discount is valid
+        let subtotal = 0;
+        for (const item in cart) {
+          subtotal += cart[item].price * cart[item].quantity;
+        }
+
+        if (discountValue > subtotal) {
+          messageEl.textContent = "Discount cannot be greater than subtotal";
+          messageEl.className = "error";
+          messageEl.classList.remove("hidden");
+          return;
+        }
+
+        discount = discountValue;
+        messageEl.textContent = `Discount of KD${discount.toFixed(3)} applied`;
+        messageEl.className = "success";
+        messageEl.classList.remove("hidden");
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+          messageEl.classList.add("hidden");
+        }, 3000);
+
+        updateCartDisplay();
+      }
+
+      // Checkout functions
+      async function showCheckoutPage() {
+        // First check if cart is empty
+        if (Object.keys(cart).length === 0) {
+          await showAlert(
+            "Your cart is empty! Please add items before checkout."
+          );
+          return;
+        }
+
+        // Calculate subtotal
+        let subtotal = 0;
+        for (const item in cart) {
+          subtotal += cart[item].price * cart[item].quantity;
+        }
+
+        const total = Math.max(0, subtotal - discount);
+
+        // Update checkout summary
+        document.getElementById("checkout-summary").innerHTML = `
+                <h3>Order Summary</h3>
+                <div style="margin-bottom: 15px;">
+                    <div>Subtotal: KD ${subtotal.toFixed(3)}</div>
+                    ${
+                      discount > 0
+                        ? `<div>Discount: -KD ${discount.toFixed(3)}</div>`
+                        : ""
+                    }
+                    <div style="font-weight: bold; margin-top: 5px;">Total: KD ${total.toFixed(
+                      3
+                    )}</div>
+                </div>
+            `;
+
+        // Reset payment selection
+        selectedPaymentMethod = null;
+        document.querySelectorAll(".payment-method").forEach((method) => {
+          method.classList.remove("selected");
+        });
+
+        // Show checkout page
+        document.getElementById("checkout-page").style.display = "flex";
+      }
+
+      async function processPayment() {
+        // First check if a payment method is selected
+        if (!selectedPaymentMethod) {
+          await showAlert("Please select a payment method first");
+          return false;
+        }
+
+        // If payment is cash, show cash payment modal
+        if (selectedPaymentMethod === "cash") {
+          showCashPaymentModal();
+          return false; // Don't proceed with regular payment yet
+        }
+
+        // For non-cash payments, proceed as before
+        try {
+          // Calculate total
+          const total = calculateTotal();
+
+          // Record the sale
+          const saleRecorded = recordSale(selectedPaymentMethod);
+          if (!saleRecorded) {
+            throw new Error("Failed to record sale");
+          }
+
+          // Show success message
+          await showAlert(
+            `Payment of KD ${total.toFixed(
+              3
+            )} processed successfully with ${selectedPaymentMethod}!`
+          );
+
+          // Clear the cart and reset
+          clearCart();
+
+          // Hide checkout page
+          hideCheckoutPage();
+
+          // Update cart display
+          updateCartDisplay();
+
+          return true;
+        } catch (error) {
+          console.error("Error processing payment:", error);
+          await showAlert(
+            "There was an error processing your payment. Please try again."
+          );
+          return false;
+        }
+      }
+      function clearCart() {
+        cart = {};
+        discount = 0;
+        document.getElementById("discount-form").classList.add("hidden");
+        document.getElementById("discountAmount").value = "";
+        updateCartDisplay();
+      }
+
+      // Discount functions
+      function showDiscountForm() {
+        document.getElementById("discount-form").classList.remove("hidden");
+      }
+
+      function calculateTotal() {
+        let subtotal = 0;
+        for (const item in cart) {
+          subtotal += cart[item].price * cart[item].quantity;
+        }
+        return Math.max(0, subtotal - discount);
+      }
+
+      function calculateSubtotal() {
+        let subtotal = 0;
+        for (const item in cart) {
+          subtotal += cart[item].price * cart[item].quantity;
+        }
+        return subtotal;
+      }
+
+      // Record a sale in the database
+      function recordSale(paymentMethod) {
+        try {
+          const db = getDB();
+          const sale = {
+            id: db.nextSaleId++,
+            date: new Date().toISOString(),
+            items: { ...cart },
+            subtotal: calculateSubtotal(),
+            discount: discount,
+            total: calculateTotal(),
+            paymentMethod: paymentMethod,
+            processedBy: currentUser,
+            isAdmin: db.users[currentUser]?.isAdmin || false,
+          };
+
+          db.sales.push(sale);
+          saveDB(db);
+          return true;
+        } catch (error) {
+          console.error("Error recording sale:", error);
+          return false;
+        }
+      }
+      async function clearAuditLog() {
+        const db = getDB();
+
+        // Only allow admins to clear the log
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("❌ Only admin can clear audit logs!");
+          return;
+        }
+
+        // Ask for confirmation before clearing
+        if (
+          await showConfirm(
+            "⚠️ Are you sure you want to clear ALL audit log data? This cannot be undone!"
+          )
+        ) {
+          db.auditLog = []; // Clear the log
+          saveDB(db); // Save changes
+          await showAlert("✅ Audit log has been cleared.");
+
+          // Close the modal
+          const modal = document.querySelector(".audit-log-modal");
+          if (modal) modal.remove();
+        }
+      }
+      // Clear all sales data
+      async function clearSalesData() {
+        const db = getDB();
+        currentFilteredSales = [...db.sales];
+
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can clear sales data!");
+          return;
+        }
+
+        if (
+          await showConfirm(
+            "Are you sure you want to clear ALL sales data? This cannot be undone!"
+          )
+        ) {
+          db.sales = [];
+          db.nextSaleId = 1;
+          saveDB(db);
+          await showAlert("All sales data has been cleared.");
+
+          // Close the sales modal if open
+          const modal = document.getElementById("sales-modal");
+          if (modal) {
+            document.body.removeChild(modal);
+          }
+        }
+      }
+
+      // Show sales records (admin only)
+      async function showSalesRecords() {
+        const db = getDB();
+        const sales = db.sales;
+
+        // Verify admin status
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can view sales records!");
+          return;
+        }
+
+        // Create a modal for sales records
+        const modal = document.createElement("div");
+        modal.id = "sales-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0,0,0,0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "2000";
+
+        // Create modal content
+        const content = document.createElement("div");
+        content.style.backgroundColor = "white";
+        content.style.padding = "20px";
+        content.style.borderRadius = "8px";
+        content.style.maxWidth = "90%";
+        content.style.maxHeight = "90vh";
+        content.style.overflowY = "auto";
+
+        // Add close button
+        const closeButton = document.createElement("button");
+        closeButton.textContent = "Close";
+        closeButton.className = "button logout-button";
+        closeButton.style.marginBottom = "15px";
+        closeButton.onclick = () => document.body.removeChild(modal);
+
+        // Add title and buttons
+        const header = document.createElement("div");
+        header.className = "sales-header";
+
+        const title = document.createElement("h2");
+        title.textContent = "Sales Records";
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.style.display = "flex";
+        buttonsDiv.style.gap = "10px";
+
+        const clearButton = document.createElement("button");
+        clearButton.textContent = "🗑️ Clear Sales Data";
+        clearButton.className = "button clear-sales-button";
+        clearButton.onclick = clearSalesData;
+
+        const downloadButton = document.createElement("button");
+        downloadButton.textContent = "📄 Download as PDF";
+        downloadButton.className = "button admin-button";
+        downloadButton.onclick = () => downloadSalesAsPDF(db.sales);
+
+        buttonsDiv.appendChild(title);
+        buttonsDiv.appendChild(downloadButton);
+        buttonsDiv.appendChild(clearButton);
+
+        header.appendChild(buttonsDiv);
+
+        // Add sales table
+        const table = document.createElement("table");
+        table.style.width = "100%";
+        table.style.borderCollapse = "collapse";
+        table.style.marginTop = "15px";
+
+        // Create table header
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+            <tr>
+              <th style="border:1px solid #ddd; padding:8px; text-align:left;">Date</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:left;">Processed By</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:left;">Items</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">Subtotal</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">Discount</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">Total</th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:left;">Payment</th>
+            </tr>
+          `;
+
+        // Create table body
+        const tbody = document.createElement("tbody");
+
+        // Add each sale to the table
+        sales.forEach((sale) => {
+          const row = document.createElement("tr");
+
+          // Format items list
+          const itemsList = Object.keys(sale.items)
+            .map(
+              (item) =>
+                `${item} (${sale.items[item].quantity} × KD ${sale.items[
+                  item
+                ].price.toFixed(3)})`
+            )
+            .join(", ");
+
+          // In the row.innerHTML template within showSalesRecords(), update the currency display:
+          row.innerHTML = `
+        <td style="border:1px solid #ddd; padding:8px;">${new Date(
+          sale.date
+        ).toLocaleString()}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${sale.processedBy} ${
+            sale.isAdmin ? "(Admin)" : "(User)"
+          }</td>
+        <td style="border:1px solid #ddd; padding:8px;">${itemsList}</td>
+        <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.subtotal.toFixed(
+          3
+        )}</td>
+        <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.discount.toFixed(
+          3
+        )}</td>
+        <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.total.toFixed(
+          3
+        )}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${
+          sale.paymentMethod
+        }</td>
+      `;
+
+          tbody.appendChild(row);
+        });
+
+        // Add total sales summary
+        const totalSales = sales.reduce((sum, sale) => sum + sale.total, 0);
+        const summaryRow = document.createElement("tr");
+        // Update the summary row in showSalesRecords():
+        summaryRow.innerHTML = `
+        <td colspan="5" style="border:1px solid #ddd; padding:8px; text-align:right; font-weight:bold;">Total Sales:</td>
+        <td style="border:1px solid #ddd; padding:8px; text-align:right; font-weight:bold;">KD ${totalSales.toFixed(
+          3
+        )}</td>
+        <td style="border:1px solid #ddd; padding:8px;"></td>
+      `;
+        tbody.appendChild(summaryRow);
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        // Add filter controls
+        const filterDiv = document.createElement("div");
+        filterDiv.style.margin = "15px 0";
+        filterDiv.innerHTML = `
+            <h3>Filters</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+              <select id="sales-user-filter" style="flex:1;">
+                <option value="">All Users</option>
+                ${Object.keys(db.users)
+                  .map((user) => `<option value="${user}">${user}</option>`)
+                  .join("")}
+              </select>
+              <select id="sales-type-filter" style="flex:1;">
+                <option value="">All Types</option>
+                <option value="admin">Admin Sales</option>
+                <option value="user">User Sales</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <input type="date" id="sales-start-date" style="flex:1;">
+              <input type="date" id="sales-end-date" style="flex:1;">
+              <button class="button" onclick="applySalesFilters()" style="flex:0.5;">Apply</button>
+            </div>
+          `;
+
+        content.appendChild(closeButton);
+        content.appendChild(header);
+        content.appendChild(filterDiv);
+        content.appendChild(table);
+        modal.appendChild(content);
+
+        document.body.appendChild(modal);
+      }
+
+      // New function to download sales as PDF
+      function downloadSalesAsPDF() {
+        // Create a new jsPDF instance
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Add title
+        doc.setFontSize(18);
+        doc.text("Sales Records", 14, 15);
+        doc.setFontSize(12);
+
+        // Add filter information if any filters are applied
+        const userFilter = document.getElementById("sales-user-filter").value;
+        const typeFilter = document.getElementById("sales-type-filter").value;
+        const startDate = document.getElementById("sales-start-date").value;
+        const endDate = document.getElementById("sales-end-date").value;
+
+        let filterInfo = "Generated on: " + new Date().toLocaleString();
+        let yPosition = 22;
+
+        if (userFilter || typeFilter || startDate || endDate) {
+          filterInfo += "\nFilters:";
+          if (userFilter) filterInfo += ` User: ${userFilter}`;
+          if (typeFilter) filterInfo += ` Type: ${typeFilter}`;
+          if (startDate) filterInfo += ` From: ${startDate}`;
+          if (endDate) filterInfo += ` To: ${endDate}`;
+
+          // Split the filter info into lines if it's too long
+          const filterLines = doc.splitTextToSize(filterInfo, 180);
+          doc.text(filterLines, 14, yPosition);
+          yPosition += filterLines.length * 7; // Adjust position based on number of lines
+        } else {
+          doc.text(filterInfo, 14, yPosition);
+          yPosition += 10;
+        }
+
+        // Prepare data for the table
+        const tableData = currentFilteredSales.map((sale) => {
+          // Format items list
+          const itemsList = Object.keys(sale.items)
+            .map(
+              (item) =>
+                `${item} (${sale.items[item].quantity} × KD ${sale.items[
+                  item
+                ].price.toFixed(3)})`
+            )
+            .join(", ");
+
+          return [
+            new Date(sale.date).toLocaleString(),
+            `${sale.processedBy} ${sale.isAdmin ? "(Admin)" : "(User)"}`,
+            itemsList,
+            `KD ${sale.subtotal.toFixed(3)}`,
+            `KD ${sale.discount.toFixed(3)}`,
+            `KD ${sale.total.toFixed(3)}`,
+            sale.paymentMethod,
+          ];
+        });
+
+        // Add total sales
+        const totalSales = currentFilteredSales.reduce(
+          (sum, sale) => sum + sale.total,
+          0
+        );
+        tableData.push([
+          "",
+          "",
+          "",
+          "",
+          "Total:",
+          `KD ${totalSales.toFixed(3)}`,
+          "",
+        ]);
+
+        // Create the table
+        doc.autoTable({
+          head: [
+            [
+              "Date",
+              "Processed By",
+              "Items",
+              "Subtotal",
+              "Discount",
+              "Total",
+              "Payment",
+            ],
+          ],
+          body: tableData,
+          startY: yPosition + 10,
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: "linebreak",
+          },
+          columnStyles: {
+            3: { halign: "right" },
+            4: { halign: "right" },
+            5: { halign: "right" },
+          },
+          margin: { left: 10 },
+        });
+
+        // Save the PDF
+        doc.save(`sales_records_${new Date().toISOString().split("T")[0]}.pdf`);
+      }
+
+      // Apply sales filters
+      function applySalesFilters() {
+        const db = getDB();
+        const userFilter = document.getElementById("sales-user-filter").value;
+        const typeFilter = document.getElementById("sales-type-filter").value;
+        const startDate = document.getElementById("sales-start-date").value;
+        const endDate = document.getElementById("sales-end-date").value;
+
+        currentFilteredSales = [...db.sales]; // Start with all sales
+
+        if (userFilter) {
+          currentFilteredSales = currentFilteredSales.filter(
+            (sale) => sale.processedBy === userFilter
+          );
+        }
+
+        if (typeFilter) {
+          currentFilteredSales = currentFilteredSales.filter((sale) =>
+            typeFilter === "admin" ? sale.isAdmin : !sale.isAdmin
+          );
+        }
+
+        if (startDate) {
+          const start = new Date(startDate);
+          currentFilteredSales = currentFilteredSales.filter(
+            (sale) => new Date(sale.date) >= start
+          );
+        }
+
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999); // Include entire end day
+          currentFilteredSales = currentFilteredSales.filter(
+            (sale) => new Date(sale.date) <= end
+          );
+        }
+
+        // Update the displayed table
+        const tbody = document.querySelector("#sales-modal tbody");
+        tbody.innerHTML = "";
+
+        currentFilteredSales.forEach((sale) => {
+          const row = document.createElement("tr");
+
+          const itemsList = Object.keys(sale.items)
+            .map(
+              (item) =>
+                `${item} (${sale.items[item].quantity} × KD ${sale.items[
+                  item
+                ].price.toFixed(3)})`
+            )
+            .join(", ");
+
+          row.innerHTML = `
+                  <td style="border:1px solid #ddd; padding:8px;">${new Date(
+                    sale.date
+                  ).toLocaleString()}</td>
+                  <td style="border:1px solid #ddd; padding:8px;">${
+                    sale.processedBy
+                  } ${sale.isAdmin ? "(Admin)" : "(User)"}</td>
+                  <td style="border:1px solid #ddd; padding:8px;">${itemsList}</td>
+                  <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.subtotal.toFixed(
+                    3
+                  )}</td>
+                  <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.discount.toFixed(
+                    3
+                  )}</td>
+                  <td style="border:1px solid #ddd; padding:8px; text-align:right;">KD ${sale.total.toFixed(
+                    3
+                  )}</td>
+                  <td style="border:1px solid #ddd; padding:8px;">${
+                    sale.paymentMethod
+                  }</td>
+              `;
+
+          tbody.appendChild(row);
+        });
+
+        // Update total sales summary
+        const totalSales = currentFilteredSales.reduce(
+          (sum, sale) => sum + sale.total,
+          0
+        );
+        const summaryRow = document.createElement("tr");
+        summaryRow.innerHTML = `
+              <td colspan="5" style="border:1px solid #ddd; padding:8px; text-align:right; font-weight:bold;">Filtered Total:</td>
+              <td style="border:1px solid #ddd; padding:8px; text-align:right; font-weight:bold;">KD ${totalSales.toFixed(
+                3
+              )}</td>
+              <td style="border:1px solid #ddd; padding:8px;"></td>
+          `;
+        tbody.appendChild(summaryRow);
+      }
+
+      // Toggle new item form visibility
+
+      // Toggle user form visibility
+      function toggleUserForm() {
+        const form = document.getElementById("user-form");
+        const button = document.getElementById("add-user-button");
+
+        form.classList.toggle("hidden");
+
+        if (form.classList.contains("hidden")) {
+          button.textContent = "➕ Add New User";
+        } else {
+          button.textContent = "✖ Cancel";
+        }
+      }
+      // Toggle admin navbar menu
+      function toggleAdminNavbar() {
+        document.getElementById("admin-navbar-menu").classList.toggle("show");
+      }
+
+      // Close admin navbar when clicking outside
+      document.addEventListener("click", function (event) {
+        const navbar = document.getElementById("admin-navbar");
+        const btn = document.getElementById("admin-navbar-btn");
+        const menu = document.getElementById("admin-navbar-menu");
+
+        if (!navbar.contains(event.target)) {
+          menu.classList.remove("show");
+        }
+      });
+
+      // Modify checkLogin function to add admin-user class when admin logs in
+      // In your checkLogin function, find where you check for admin status and add:
+      if (db.users[username]?.isAdmin) {
+        document.body.classList.add("admin-user");
+      } else {
+        document.body.classList.remove("admin-user");
+      }
+
+      // Also add this to your logout function:
+      document.body.classList.remove("admin-user");
+      // Menu item functions (admin-only)
+
+      // Admin functions - ONLY ADMIN CAN ACCESS THESE
+      function addUser() {
+        // Double-check admin status before proceeding
+        const db = getDB();
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          showMessage("Unauthorized! Only admin can add users.", "error");
+          return;
+        }
+
+        const username = document.getElementById("newUsername").value.trim();
+        const password = document.getElementById("newPassword").value;
+        const userType = document.getElementById("userType").value;
+        const messageEl = document.getElementById("user-message");
+
+        if (!username || !password) {
+          showMessage("Please enter both username and password.", "error");
+          return;
+        }
+
+        if (db.users[username]) {
+          showMessage("Username already exists.", "error");
+          return;
+        }
+
+        // Add new user with correct type
+        db.users[username] = {
+          password: password,
+          isAdmin: userType === "admin",
+          isSuspended: false,
+        };
+
+        // Log the user creation
+        db.auditLog.push({
+          timestamp: new Date().toISOString(),
+          adminUser: currentUser,
+          action: "user_added",
+          targetUser: username,
+          details: {
+            userType: userType,
+          },
+        });
+
+        saveDB(db);
+
+        showMessage(
+          `User ${username} created successfully as ${
+            userType === "admin" ? "Admin" : "Normal User"
+          }!`,
+          "success"
+        );
+        updateUsersList();
+
+        // Clear form
+        document.getElementById("newUsername").value = "";
+        document.getElementById("newPassword").value = "";
+        toggleUserForm();
+      }
+
+      // Update removeUser function
+      async function removeUser(username) {
+        const db = getDB(); // <-- Add this
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can remove users!");
+          return;
+        }
+
+        if (username === currentUser) {
+          await showAlert("You cannot remove your own account!");
+          return;
+        }
+
+        if (db.users[username]?.isAdmin) {
+          showPasswordPrompt(username);
+        } else {
+          if (
+            await showConfirm(
+              `Are you sure you want to remove user ${username}?`
+            )
+          ) {
+            db.auditLog.push({
+              timestamp: new Date().toISOString(),
+              adminUser: currentUser,
+              action: "user_removed",
+              targetUser: username,
+            });
+
+            delete db.users[username];
+            saveDB(db);
+            updateModalUsersList(); // Update this line
+            await showAlert(`User ${username} has been removed.`);
+          }
+        }
+      }
+
+      // Update suspendUser function
+      async function suspendUser(username) {
+        const db = getDB();
+
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can suspend users!");
+          return;
+        }
+
+        if (username === currentUser) {
+          await showAlert("You cannot suspend your own account!");
+          return;
+        }
+
+        if (db.users[username]?.isAdmin) {
+          await showAlert("You cannot suspend another admin account!");
+          return;
+        }
+
+        if (
+          await showConfirm(
+            `Are you sure you want to suspend user ${username}?`
+          )
+        ) {
+          db.users[username].isSuspended = true;
+          db.auditLog.push({
+            timestamp: new Date().toISOString(),
+            adminUser: currentUser,
+            action: "user_suspended",
+            targetUser: username,
+          });
+
+          saveDB(db);
+          updateModalUsersList(); // Update this line
+          await showAlert(`User ${username} has been suspended.`);
+        }
+      }
+
+      // Update unsuspendUser function
+      async function unsuspendUser(username) {
+        const db = getDB();
+
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can unsuspend users!");
+          return;
+        }
+
+        if (
+          await showConfirm(
+            `Are you sure you want to unsuspend user ${username}?`
+          )
+        ) {
+          db.users[username].isSuspended = false;
+          db.auditLog.push({
+            timestamp: new Date().toISOString(),
+            adminUser: currentUser,
+            action: "user_unsuspended",
+            targetUser: username,
+          });
+
+          saveDB(db);
+          updateModalUsersList(); // Update this line
+          await showAlert(`User ${username} has been unsuspended.`);
+        }
+      }
+
+      // Show password prompt for removing admin users
+      function showPasswordPrompt(username) {
+        const promptDiv = document.createElement("div");
+        promptDiv.className = "password-prompt";
+        promptDiv.innerHTML = `
+                <div class="password-prompt-content">
+                  <h3>Enter ${username}'s password to confirm removal</h3>
+                  <input type="password" id="adminPassword" placeholder="Enter ${username}'s password">
+                  <div class="password-prompt-buttons">
+                    <button class="button" onclick="verifyAdminPassword('${username}')">Confirm</button>
+                    <button class="button logout-button" onclick="cancelRemoveUser()">Cancel</button>
+                  </div>
+                  <p id="admin-password-error" class="error hidden"></p>
+                </div>
+              `;
+
+        document.body.appendChild(promptDiv);
+        // Focus the password input when prompt appears
+        setTimeout(() => {
+          const passwordInput = document.getElementById("adminPassword");
+          if (passwordInput) {
+            passwordInput.focus();
+          }
+        }, 100);
+      }
+
+      // Verify admin password before removing another admin
+      async function verifyAdminPassword(username) {
+        const db = getDB();
+        const passwordInput = document.getElementById("adminPassword");
+        const password = passwordInput.value;
+        const errorEl = document.getElementById("admin-password-error");
+
+        if (!password) {
+          errorEl.textContent = "Please enter the admin's password";
+          errorEl.classList.remove("hidden");
+          return;
+        }
+
+        // Check against the TARGET admin's password (username parameter)
+        if (db.users[username]?.password === password) {
+          // Password correct, proceed with removal
+          if (
+            await showConfirm(
+              `Are you sure you want to remove admin user ${username}?`
+            )
+          ) {
+            // Log before actually deleting
+            db.auditLog.push({
+              timestamp: new Date().toISOString(),
+              adminUser: currentUser,
+              action: "user_removed",
+              targetUser: username,
+              details: {
+                wasAdmin: true,
+              },
+            });
+
+            delete db.users[username];
+            saveDB(db);
+            updateUsersList();
+            await showAlert(`Admin user ${username} has been removed.`);
+          }
+          cancelRemoveUser();
+        } else {
+          // Password incorrect
+          errorEl.textContent = "Incorrect password for this admin";
+          errorEl.classList.remove("hidden");
+          passwordInput.focus();
+        }
+      }
+
+      // Cancel the removal process
+      function cancelRemoveUser() {
+        const prompt = document.querySelector(".password-prompt");
+        if (prompt) {
+          prompt.remove();
+        }
+      }
+      // ====== NEW MODAL FUNCTIONS ======
+
+      // Show User Management Modal
+      async function showUserManagement() {
+        const db = getDB();
+
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can manage users!");
+          return;
+        }
+
+        // Create modal
+        const modal = document.createElement("div");
+        modal.className = "user-management-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0,0,0,0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "2000";
+
+        // Modal content
+        const content = document.createElement("div");
+        content.className = "user-management-content";
+        content.style.backgroundColor = "white";
+        content.style.padding = "20px";
+        content.style.borderRadius = "8px";
+        content.style.width = "90%";
+        content.style.maxWidth = "800px";
+        content.style.maxHeight = "90vh";
+        content.style.overflowY = "auto";
+
+        // Title + Close Button
+        content.innerHTML = `
+              <button class="button logout-button" onclick="this.closest('.user-management-modal').remove()"
+                      style="margin-bottom: 15px;">Close</button>
+              <h2>User Management</h2>
+              <div id="modal-users-list" style="margin-top: 15px;"></div>
+              <button class="button admin-button" onclick="showAddUserForm(); this.closest('.user-management-modal').remove()"
+                      style="margin-top: 15px; width: 100%;">➕ Add New User</button>
+          `;
+
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        // Load users
+        updateModalUsersList();
+      }
+      // Open the "Add Item" popup
+      function showAddMenuItemForm() {
+        const modal = document.createElement("div");
+        modal.className = "add-item-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0,0,0,0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "2000";
+
+        modal.innerHTML = `
+          <div class="add-item-content" style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px;">
+            <button class="button logout-button" onclick="this.closest('.add-item-modal').remove()"
+                    style="margin-bottom:15px;">Close</button>
+            <h2>Add New Menu Item</h2>
+            <input type="text" id="modalItemName" placeholder="Item name" style="width:100%; margin-bottom:10px; padding:8px;">
+            <input type="number" id="modalItemPrice" placeholder="Price" style="width:100%; margin-bottom:10px; padding:8px;">
+            <button class="button" onclick="modalAddMenuItem()" style="width:100%;">Add Item</button>
+            <p id="modal-item-message" class="hidden" style="margin-top:10px;"></p>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+      }
+
+      // Save the new item
+      async function modalAddMenuItem() {
+        const db = getDB();
+        const name = document.getElementById("modalItemName").value.trim();
+        const price = parseFloat(
+          document.getElementById("modalItemPrice").value
+        );
+
+        // Validate input
+        if (!name || isNaN(price)) {
+          await showAlert("Please enter a valid name and price!");
+          return;
+        }
+
+        // Add to database
+        db.menuItems.push({
+          id: db.nextItemId++,
+          name: name,
+          price: price,
+          status: "in-stock",
+        });
+        saveDB(db);
+
+        // Close modal and refresh
+        document.querySelector(".add-item-modal").remove();
+        loadMenuItems();
+      }
+      // Show Add User Form Modal
+      function showAddUserForm() {
+        const modal = document.createElement("div");
+        modal.className = "add-user-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0,0,0,0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "2000";
+
+        // Modal content
+        const content = document.createElement("div");
+        content.className = "add-user-content";
+        content.style.backgroundColor = "white";
+        content.style.padding = "20px";
+        content.style.borderRadius = "8px";
+        content.style.width = "90%";
+        content.style.maxWidth = "500px";
+        content.style.maxHeight = "90vh";
+        content.style.overflowY = "auto";
+
+        content.innerHTML = `
+              <button class="button logout-button" onclick="this.closest('.add-user-modal').remove()"
+                      style="margin-bottom: 15px;">Close</button>
+              <h2>Add New User</h2>
+              <input type="text" id="modalNewUsername" placeholder="Enter username" style="width: 100%; margin-bottom: 10px;">
+              <input type="password" id="modalNewPassword" placeholder="Enter password" style="width: 100%; margin-bottom: 10px;">
+              <select id="modalUserType" style="width: 100%; margin-bottom: 10px;">
+                  <option value="user">Normal User</option>
+                  <option value="admin">Admin</option>
+              </select>
+              <button class="button admin-button" onclick="modalAddUser()" style="width: 100%;">Add User</button>
+              <p id="modal-user-message" class="hidden" style="margin-top: 10px;"></p>
+          `;
+
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+      }
+
+      // Update User List in Modal
+      function updateModalUsersList() {
+        const db = getDB();
+        const usersList = document.getElementById("modal-users-list");
+        if (!usersList) return;
+
+        usersList.innerHTML = "";
+
+        for (const username in db.users) {
+          const userDiv = document.createElement("div");
+          userDiv.style.display = "flex";
+          userDiv.style.justifyContent = "space-between";
+          userDiv.style.alignItems = "center";
+          userDiv.style.padding = "10px";
+          userDiv.style.borderBottom = "1px solid #eee";
+
+          userDiv.innerHTML = `
+                  <span>${username} (${
+            db.users[username].isAdmin ? "Admin" : "User"
+          })
+                          ${
+                            db.users[username].isSuspended ? " (Suspended)" : ""
+                          }</span>
+                  <div>
+                      ${
+                        currentUser &&
+                        db.users[currentUser]?.isAdmin &&
+                        username !== currentUser
+                          ? `
+                          <button class="button status-button" onclick="removeUser('${username}')"
+                                  style="background-color: #dc3545; margin-left: 5px;">Remove</button>
+                          ${
+                            !db.users[username].isAdmin
+                              ? db.users[username].isSuspended
+                                ? `<button class="button status-button in-stock" onclick="unsuspendUser('${username}')"
+                                          style="margin-left: 5px;">Unsuspend</button>`
+                                : `<button class="button status-button suspended" onclick="suspendUser('${username}')"
+                                          style="margin-left: 5px;">Suspend</button>`
+                              : ""
+                          }
+                      `
+                          : ""
+                      }
+                  </div>
+              `;
+
+          usersList.appendChild(userDiv);
+        }
+      }
+
+      // Add User from Modal
+      function modalAddUser() {
+        const db = getDB();
+        const username = document
+          .getElementById("modalNewUsername")
+          .value.trim();
+        const password = document.getElementById("modalNewPassword").value;
+        const userType = document.getElementById("modalUserType").value;
+        const messageEl = document.getElementById("modal-user-message");
+
+        // Validation
+        if (!username || !password) {
+          messageEl.textContent = "Please enter both username and password";
+          messageEl.className = "error";
+          messageEl.classList.remove("hidden");
+          return;
+        }
+
+        if (db.users[username]) {
+          messageEl.textContent = "Username already exists";
+          messageEl.className = "error";
+          messageEl.classList.remove("hidden");
+          return;
+        }
+
+        // Add user
+        db.users[username] = {
+          password: password,
+          isAdmin: userType === "admin",
+          isSuspended: false,
+        };
+
+        // Log action
+        db.auditLog.push({
+          timestamp: new Date().toISOString(),
+          adminUser: currentUser,
+          action: "user_added",
+          targetUser: username,
+          details: { userType: userType },
+        });
+
+        saveDB(db);
+
+        // Show success
+        messageEl.textContent = `User ${username} added as ${
+          userType === "admin" ? "Admin" : "User"
+        }!`;
+        messageEl.className = "success";
+        messageEl.classList.remove("hidden");
+
+        // Clear form
+        document.getElementById("modalNewUsername").value = "";
+        document.getElementById("modalNewPassword").value = "";
+
+        // Refresh user list in management modal
+        updateModalUsersList();
+      }
+      // Show admin audit log
+      async function showAuditLog() {
+        const db = getDB();
+
+        // Verify admin status
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can view audit logs!");
+          return;
+        }
+
+        // Create modal
+        const modal = document.createElement("div");
+        modal.className = "audit-log-modal";
+
+        // Create content
+        const content = document.createElement("div");
+        content.className = "audit-log-content";
+
+        // Add title and close button
+        const title = document.createElement("h2");
+        title.textContent = "Admin Audit Log";
+
+        // Create Close button
+        const closeButton = document.createElement("button");
+        closeButton.className = "button logout-button";
+        closeButton.textContent = "Close";
+        closeButton.onclick = () => modal.remove();
+
+        // Create Clear Audit Log button
+        const clearButton = document.createElement("button");
+        clearButton.className = "button clear-sales-button";
+        clearButton.textContent = "🗑️ Clear Audit Log";
+        clearButton.onclick = clearAuditLog;
+
+        // Wrap both buttons in a container for better alignment
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.style.display = "flex";
+        buttonsDiv.style.gap = "10px";
+        buttonsDiv.style.marginBottom = "15px";
+        buttonsDiv.appendChild(closeButton);
+        buttonsDiv.appendChild(clearButton);
+
+        // Create table
+        const table = document.createElement("table");
+        table.className = "audit-log-table";
+
+        // Table header
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+                  <tr>
+                      <th>Timestamp</th>
+                      <th>Admin</th>
+                      <th>Action</th>
+                      <th>Target User</th>
+                      <th>Details</th>
+                  </tr>
+              `;
+
+        // Table body
+        const tbody = document.createElement("tbody");
+
+        // Add log entries (newest first)
+        db.auditLog
+          .slice()
+          .reverse()
+          .forEach((log) => {
+            const row = document.createElement("tr");
+
+            // Format details
+            let details = "";
+            if (log.details) {
+              if (log.details.userType) {
+                details = `Type: ${log.details.userType}`;
+              }
+              if (log.details.wasAdmin) {
+                details = "Admin user";
+              }
+            }
+
+            row.innerHTML = `
+                      <td>${new Date(log.timestamp).toLocaleString()}</td>
+                      <td>${log.adminUser}</td>
+                      <td>${log.action.replace("_", " ")}</td>
+                      <td>${log.targetUser}</td>
+                      <td>${details}</td>
+                  `;
+
+            tbody.appendChild(row);
+          });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        // Add filter controls
+        const filterDiv = document.createElement("div");
+        filterDiv.style.margin = "15px 0";
+        filterDiv.innerHTML = `
+                  <h3>Filters</h3>
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                      <select id="audit-admin-filter" style="flex:1;">
+                          <option value="">All Admins</option>
+                          ${Object.keys(db.users)
+                            .filter((u) => db.users[u].isAdmin)
+                            .map((u) => `<option value="${u}">${u}</option>`)
+                            .join("")}
+                      </select>
+                      <select id="audit-action-filter" style="flex:1;">
+                          <option value="">All Actions</option>
+                          <option value="user_added">User Added</option>
+                          <option value="user_removed">User Removed</option>
+                          <option value="user_suspended">User Suspended</option>
+                          <option value="user_unsuspended">User Unsuspended</option>
+                      </select>
+                  </div>
+                  <div style="display: flex; gap: 10px;">
+                      <input type="date" id="audit-start-date" style="flex:1;">
+                      <input type="date" id="audit-end-date" style="flex:1;">
+                      <button class="button" onclick="applyAuditFilters()" style="flex:0.5;">Apply</button>
+                  </div>
+              `;
+
+        content.appendChild(closeButton);
+        content.appendChild(buttonsDiv);
+        content.appendChild(title);
+        content.appendChild(filterDiv);
+        content.appendChild(table);
+        modal.appendChild(content);
+
+        document.body.appendChild(modal);
+      }
+
+      // Show login/logout logs
+      async function showLoginLogs() {
+        const db = getDB();
+
+        // Verify admin status
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("Only admin can view login logs!");
+          return;
+        }
+
+        // Create modal
+        const modal = document.createElement("div");
+        modal.className = "login-logs-modal";
+
+        // Create content
+        const content = document.createElement("div");
+        content.className = "login-logs-content";
+
+        // Add title and close button
+        const title = document.createElement("h2");
+        title.textContent = "Login/Logout Logs";
+
+        const closeButton = document.createElement("button");
+        closeButton.className = "button logout-button";
+        closeButton.textContent = "Close";
+        closeButton.onclick = () => modal.remove();
+
+        const clearButton = document.createElement("button");
+        clearButton.className = "button clear-sales-button";
+        clearButton.textContent = "🗑️ Clear Login Logs";
+        clearButton.onclick = () => clearLogs("login"); // Pass log type
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.style.display = "flex";
+        buttonsDiv.style.gap = "10px";
+        buttonsDiv.style.marginBottom = "15px";
+        buttonsDiv.appendChild(closeButton);
+        buttonsDiv.appendChild(clearButton);
+        // Create table
+        const table = document.createElement("table");
+        table.className = "login-logs-table";
+
+        // Table header
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+                  <tr>
+                      <th>Timestamp</th>
+                      <th>Username</th>
+                      <th>Action</th>
+                  </tr>
+              `;
+
+        // Table body
+        const tbody = document.createElement("tbody");
+
+        // Add log entries (newest first)
+        db.loginLogs
+          .slice()
+          .reverse()
+          .forEach((log) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                      <td>${new Date(log.timestamp).toLocaleString()}</td>
+                      <td>${log.username}</td>
+                      <td>${log.action}</td>
+                  `;
+            tbody.appendChild(row);
+          });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        // Add filter controls
+        const filterDiv = document.createElement("div");
+        filterDiv.style.margin = "15px 0";
+        filterDiv.innerHTML = `
+                  <h3>Filters</h3>
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                      <select id="login-user-filter" style="flex:1;">
+                          <option value="">All Users</option>
+                          ${Object.keys(db.users)
+                            .map((u) => `<option value="${u}">${u}</option>`)
+                            .join("")}
+                      </select>
+                      <select id="login-action-filter" style="flex:1;">
+                          <option value="">All Actions</option>
+                          <option value="login">Login</option>
+                          <option value="logout">Logout</option>
+                      </select>
+                  </div>
+                  <div style="display: flex; gap: 10px;">
+                      <input type="date" id="login-start-date" style="flex:1;">
+                      <input type="date" id="login-end-date" style="flex:1;">
+                      <button class="button" onclick="applyLoginFilters()" style="flex:0.5;">Apply</button>
+                  </div>
+              `;
+
+        content.appendChild(closeButton);
+        content.appendChild(buttonsDiv);
+        content.appendChild(title);
+        content.appendChild(filterDiv);
+        content.appendChild(table);
+        modal.appendChild(content);
+
+        document.body.appendChild(modal);
+      }
+      async function clearLogs(logType) {
+        const db = getDB();
+
+        // Verify admin status
+        if (!currentUser || !db.users[currentUser]?.isAdmin) {
+          await showAlert("❌ Only admin can clear logs!");
+          return;
+        }
+
+        const logName = logType === "audit" ? "audit log" : "login/logout logs";
+
+        if (
+          await showConfirm(`⚠️ Clear ALL ${logName}? This cannot be undone!`)
+        ) {
+          if (logType === "audit") {
+            db.auditLog = []; // Clear audit logs
+          } else {
+            db.loginLogs = []; // Clear login logs
+          }
+
+          saveDB(db);
+          await showAlert(`✅ ${logName} cleared!`);
+
+          // Close the modal
+          const modal = document.querySelector(
+            `.${logType}-logs-modal, .audit-log-modal`
+          );
+          if (modal) modal.remove();
+        }
+      }
+      // Apply audit log filters
+      function applyAuditFilters() {
+        const db = getDB();
+        const adminFilter = document.getElementById("audit-admin-filter").value;
+        const actionFilter = document.getElementById(
+          "audit-action-filter"
+        ).value;
+        const startDate = document.getElementById("audit-start-date").value;
+        const endDate = document.getElementById("audit-end-date").value;
+
+        let filteredLogs = [...db.auditLog].reverse(); // Start with newest first
+
+        if (adminFilter) {
+          filteredLogs = filteredLogs.filter(
+            (log) => log.adminUser === adminFilter
+          );
+        }
+
+        if (actionFilter) {
+          filteredLogs = filteredLogs.filter(
+            (log) => log.action === actionFilter
+          );
+        }
+
+        if (startDate) {
+          const start = new Date(startDate);
+          filteredLogs = filteredLogs.filter(
+            (log) => new Date(log.timestamp) >= start
+          );
+        }
+
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          filteredLogs = filteredLogs.filter(
+            (log) => new Date(log.timestamp) <= end
+          );
+        }
+
+        // Update table
+        const tbody = document.querySelector(".audit-log-table tbody");
+        tbody.innerHTML = "";
+
+        filteredLogs.forEach((log) => {
+          const row = document.createElement("tr");
+
+          let details = "";
+          if (log.details) {
+            if (log.details.userType) {
+              details = `Type: ${log.details.userType}`;
+            }
+            if (log.details.wasAdmin) {
+              details = "Admin user";
+            }
+          }
+
+          row.innerHTML = `
+                      <td>${new Date(log.timestamp).toLocaleString()}</td>
+                      <td>${log.adminUser}</td>
+                      <td>${log.action.replace("_", " ")}</td>
+                      <td>${log.targetUser}</td>
+                      <td>${details}</td>
+                  `;
+
+          tbody.appendChild(row);
+        });
+      }
+
+      // Apply login log filters
+      function applyLoginFilters() {
+        const db = getDB();
+        const userFilter = document.getElementById("login-user-filter").value;
+        const actionFilter = document.getElementById(
+          "login-action-filter"
+        ).value;
+        const startDate = document.getElementById("login-start-date").value;
+        const endDate = document.getElementById("login-end-date").value;
+
+        let filteredLogs = [...db.loginLogs].reverse(); // Start with newest first
+
+        if (userFilter) {
+          filteredLogs = filteredLogs.filter(
+            (log) => log.username === userFilter
+          );
+        }
+
+        if (actionFilter) {
+          filteredLogs = filteredLogs.filter(
+            (log) => log.action === actionFilter
+          );
+        }
+
+        if (startDate) {
+          const start = new Date(startDate);
+          filteredLogs = filteredLogs.filter(
+            (log) => new Date(log.timestamp) >= start
+          );
+        }
+
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          filteredLogs = filteredLogs.filter(
+            (log) => new Date(log.timestamp) <= end
+          );
+        }
+
+        // Update table
+        const tbody = document.querySelector(".login-logs-table tbody");
+        tbody.innerHTML = "";
+
+        filteredLogs.forEach((log) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                      <td>${new Date(log.timestamp).toLocaleString()}</td>
+                      <td>${log.username}</td>
+                      <td>${log.action}</td>
+                  `;
+          tbody.appendChild(row);
+        });
+      }
+
+      function showMessage(message, type) {
+        const messageEl = document.getElementById("user-message");
+        messageEl.textContent = message;
+        messageEl.className = type;
+        messageEl.classList.remove("hidden");
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+          messageEl.classList.add("hidden");
+        }, 3000);
+      }
+
+      // Show cash payment modal
+      function showCashPaymentModal() {
+        const modal = document.getElementById("cash-payment-modal");
+        const subtotal = calculateSubtotal();
+        const total = calculateTotal();
+        const discountAmount = subtotal - total;
+
+        // Update payment summary
+        document.getElementById("payment-subtotal").textContent =
+          subtotal.toFixed(3);
+        document.getElementById("payment-discount").textContent =
+          discountAmount.toFixed(3);
+        document.getElementById("payment-total").textContent = total.toFixed(3);
+
+        // Reset amount paid and change display
+        document.getElementById("amount-paid").value = "";
+        document.getElementById("change-display").classList.add("hidden");
+
+        // Show the modal
+        modal.classList.remove("hidden");
+
+        // Focus the amount paid input
+        document.getElementById("amount-paid").focus();
+
+        // Add event listener to calculate change in real-time
+        document
+          .getElementById("amount-paid")
+          .addEventListener("input", calculateChange);
+      }
+
+      // Calculate change based on amount paid
+      function calculateChange() {
+        const amountPaid =
+          parseFloat(document.getElementById("amount-paid").value) || 0;
+        const total = calculateTotal();
+        const changeDisplay = document.getElementById("change-display");
+
+        if (amountPaid >= total) {
+          const change = amountPaid - total;
+          document.getElementById("change-amount").textContent =
+            change.toFixed(3);
+          changeDisplay.classList.remove("hidden");
+        } else {
+          changeDisplay.classList.add("hidden");
+        }
+      }
+
+      // Confirm cash payment
+      async function confirmCashPayment() {
+        const amountPaid =
+          parseFloat(document.getElementById("amount-paid").value) || 0;
+        const total = calculateTotal();
+
+        if (amountPaid < total) {
+          await showAlert(
+            `Amount paid (KD ${amountPaid.toFixed(
+              3
+            )}) is less than total (KD ${total.toFixed(
+              3
+            )}). Please enter sufficient amount.`
+          );
+          return;
+        }
+
+        // Record the sale
+        const saleRecorded = recordSale("cash");
+        if (!saleRecorded) {
+          await showAlert("Failed to record sale. Please try again.");
+          return;
+        }
+
+        // Show success message with change amount
+        const change = amountPaid - total;
+        await showAlert(
+          `Cash payment of KD ${amountPaid.toFixed(
+            3
+          )} received. Change: KD ${change.toFixed(3)}. Thank you!`
+        );
+
+        // Clear and close everything
+        clearCart();
+        hideCheckoutPage();
+        hideCashPaymentModal();
+        updateCartDisplay();
+      }
+
+      // Cancel cash payment
+      function cancelCashPayment() {
+        hideCashPaymentModal();
+      }
+
+      // Hide cash payment modal
+      function hideCashPaymentModal() {
+        const amountPaidInput = document.getElementById("amount-paid");
+        amountPaidInput.removeEventListener("input", calculateChange); // Remove listener
+        document.getElementById("cash-payment-modal").classList.add("hidden");
+      }
+
+      // Initialize on load
+      window.onload = function () {
+        initDB();
+      };
+    </script>
+  </body>
+</html>
